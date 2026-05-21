@@ -49,6 +49,9 @@ public class Main implements Callable<Integer> {
     @Option(names = "--database", required = true, description = "Doris database")
     private String database;
 
+    @Option(names = "--cluster", description = "Doris compute cluster name. Runs USE @cluster before each SQL statement.")
+    private String cluster;
+
     @Option(names = "--parallelism", defaultValue = "1", description = "Parallelism (1=serial)")
     private int parallelism;
 
@@ -70,9 +73,10 @@ public class Main implements Callable<Integer> {
             throw new CommandLine.ParameterException(new CommandLine(this), "--sleep-ms must be >= 0");
         }
         validateSqlInput();
+        validateCluster();
         Map<String, String> sessionVariables = parseSessionVariables(sessionVarOptions);
         RunnerConfig config = new RunnerConfig(
-                sqlFile, sqlDir, host, port, user, password, database, parallelism, feHttpPort, outputDir, sessionVariables, sleepMs);
+                sqlFile, sqlDir, host, port, user, password, database, cluster, parallelism, feHttpPort, outputDir, sessionVariables, sleepMs);
 
         // 1. Parse SQL input
         SqlParser parser = new SqlParser();
@@ -131,6 +135,15 @@ public class Main implements Callable<Integer> {
         boolean hasDir = sqlDir != null && !sqlDir.isBlank();
         if (hasFile == hasDir) {
             throw new CommandLine.ParameterException(new CommandLine(this), "exactly one of --sql-file or --sql-dir is required");
+        }
+    }
+
+    private void validateCluster() {
+        if (cluster == null || cluster.isBlank()) {
+            return;
+        }
+        if (!cluster.matches("[A-Za-z0-9_\\-]+")) {
+            throw new CommandLine.ParameterException(new CommandLine(this), "--cluster contains invalid characters: " + cluster);
         }
     }
 

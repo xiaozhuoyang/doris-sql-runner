@@ -26,8 +26,9 @@ public class SqlExecutor {
     public ExecutionResult execute(String uuid, String taggedSql) {
         long start = System.currentTimeMillis();
         try (Connection conn = DriverManager.getConnection(jdbcUrl, config.user(), config.password());
-             Statement stmt = conn.createStatement()) {
+            Statement stmt = conn.createStatement()) {
             applySessionVariables(stmt);
+            applyCluster(stmt);
             stmt.execute(taggedSql);
             long duration = System.currentTimeMillis() - start;
             log.info("[{}] executed in {}ms", uuid, duration);
@@ -46,5 +47,14 @@ public class SqlExecutor {
             log.debug("Applying session variable: {}", sql);
             stmt.execute(sql);
         }
+    }
+
+    private void applyCluster(Statement stmt) throws Exception {
+        if (config.cluster() == null || config.cluster().isBlank()) {
+            return;
+        }
+        String sql = "USE @" + config.cluster();
+        log.debug("Applying cluster: {}", sql);
+        stmt.execute(sql);
     }
 }

@@ -10,6 +10,7 @@ public record RunnerConfig(
         String user,
         String password,
         String database,
+        String cluster,
         int parallelism,
         int feHttpPort,
         String outputDir,

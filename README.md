@@ -52,6 +52,7 @@ java -jar target/doris-sql-runner-1.0.0.jar \
   --user root \
   --password "$DORIS_PASSWORD" \
   --database minimax \
+  --cluster doris_cluster \
   --fe-http-port 8030 \
   --output-dir ./profiles
 ```
@@ -138,6 +139,28 @@ java -jar target/doris-sql-runner-1.0.0.jar \
 
 If you pass `--session-var enable_profile=false`, it overrides the default and profile collection may not find a profile.
 
+## Doris Cluster
+
+For compute-storage separated deployments, use `--cluster` to run each SQL in a specified Doris compute cluster:
+
+```bash
+java -jar target/doris-sql-runner-1.0.0.jar \
+  --sql-file ./queries/q1.sql \
+  --host 127.0.0.1 \
+  --port 9030 \
+  --user root \
+  --password "$DORIS_PASSWORD" \
+  --database minimax \
+  --cluster doris_cluster \
+  --output-dir ./profiles
+```
+
+Before each SQL statement, the runner applies session variables and then executes:
+
+```sql
+USE @doris_cluster;
+```
+
 ## SQL Parsing Rules
 
 - Statements are split by semicolon.
@@ -154,6 +177,7 @@ If you pass `--session-var enable_profile=false`, it overrides the default and p
 - `--user`: Doris username, default `root`.
 - `--password`: Doris password.
 - `--database`: Doris database, required.
+- `--cluster`: Doris compute cluster name. Runs `USE @cluster` before each SQL statement.
 - `--parallelism`: execution parallelism, default `1`.
 - `--fe-http-port`: Doris FE HTTP port, default `8030`.
 - `--output-dir`: directory for profile output, default current directory.
